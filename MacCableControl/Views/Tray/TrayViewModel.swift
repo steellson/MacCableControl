@@ -10,8 +10,8 @@ import SwiftUI
 final class TrayViewModel: ObservableObject {
     @Published var isCharging: Bool = false
 
+    private let alarm = Alarm()
     private let chargeTracker = ChargeTracker()
-    private var beepProcess: Timer?
 }
 
 // MARK: - Public
@@ -50,22 +50,6 @@ private extension TrayViewModel {
         let isntPluggedIn = !chargeTracker.isPowerAdapterPluggedIn()
         let shouldBeep = isntCharging && isntPluggedIn
 
-        beep(shouldBeep)
-    }
-
-    func beep(_ isOn: Bool) {
-        guard isOn else {
-            beepProcess?.invalidate()
-            beepProcess = nil
-            return
-        }
-
-        beepProcess = Timer.scheduledTimer(
-            withTimeInterval: 1,
-            repeats: true
-        ) {  _ in
-            NSSound.beep()
-        }
-        beepProcess?.fire()
+        alarm.signal(shouldBeep)
     }
 }
