@@ -1,2 +1,3 @@
-** Fun and little usefull **
-* Track plugged in power cabble *
+__Funny stuff__
+* Track plugged in power cabble
+* Play sound if unplugged
