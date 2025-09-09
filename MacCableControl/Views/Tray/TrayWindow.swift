@@ -5,25 +5,48 @@
 //  Created by Andrew Steellson on 06.09.2025.
 //
 
+import Combine
 import SwiftUI
 
 final class TrayWindow: NSWindow {
+    private var image: NSImage? {
+        didSet { statusItem.button?.image = image }
+    }
 
+    private var cancellables = Set<AnyCancellable>()
+
+    private let customMenu: Menu
+    private let trayViewModel: TrayViewModel
     private let statusItem: NSStatusItem
-    private var image: NSImage? = NSImage(
-        systemSymbolName: "bolt.shield",
-        accessibilityDescription: "Power Plug"
-    )
 
     override var canBecomeKey: Bool { true }
 
-    override func resignKey() {
-        super.resignKey()
-        orderOut(nil)
-    }
+    // MARK: - Initialization
+    init(
+        alarm: Alarm,
+        saver: Saver,
+        finder: Finder,
+        pusher: Pusher,
+        chargeTracker: ChargeTracker
+    ) {
+        let trayViewModel = TrayViewModel(
+            alarm: alarm,
+            pusher: pusher,
+            chargeTracker: chargeTracker
+        )
+        let menuViewModel = MenuViewModel(
+            alarm: alarm,
+            saver: saver,
+            pusher: pusher,
+            finder: finder
+        )
 
-    init(_ contentView: TrayView) {
-        statusItem = NSStatusBar.system.statusItem(
+        let tray = TrayView(viewModel: trayViewModel)
+        let menu = Menu(viewModel: menuViewModel)
+
+        self.customMenu = menu
+        self.trayViewModel = trayViewModel
+        self.statusItem = NSStatusBar.system.statusItem(
             withLength: NSStatusItem.variableLength
         )
 
@@ -34,14 +57,21 @@ final class TrayWindow: NSWindow {
             defer: false
         )
 
-        configureBasic(with: contentView)
+        Task { try? await pusher.requestPermissions() }
+
+        configureBasic(with: tray)
         configureButton()
+        configureSubscription()
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        orderOut(nil)
     }
 }
 
 // MARK: - Configuration
 private extension TrayWindow {
-
     func configureBasic(with trayView: TrayView) {
         contentView = NSHostingView(rootView: trayView)
         contentView?.layer?.backgroundColor = .clear
@@ -62,17 +92,24 @@ private extension TrayWindow {
         statusButton.sendAction(on: [.leftMouseUp, .rightMouseUp])
     }
 
-    func configureMenu() {
-        let menu = NSMenu()
-        let quit = NSMenuItem(
-            title: "Quit",
-            action: #selector(quit),
-            keyEquivalent: "q"
-        )
+    func configureSubscription() {
+        trayViewModel.$isCharging
+            .removeDuplicates()
+            .sink { [weak self] isTracking in
+                let imageName = isTracking
+                ? "bolt.shield.fill"
+                : "bolt.shield"
 
-        quit.target = self
-        menu.addItem(quit)
-        statusItem.menu = menu
+                self?.image = NSImage(
+                    systemSymbolName: imageName,
+                    accessibilityDescription: "Power Plug"
+                )
+            }
+            .store(in: &cancellables)
+    }
+
+    func configureStatusItem() {
+        statusItem.menu = customMenu
 
         if let button = statusItem.button {
             button.performClick(nil)
@@ -86,7 +123,6 @@ private extension TrayWindow {
 
 // MARK: - Calculations
 private extension TrayWindow {
-
     func calculatePosition(for rect: CGRect) -> (x: CGFloat, y: CGFloat) {
         let origin = rect.origin
         let frameWidth = frame.size.width
@@ -102,18 +138,6 @@ private extension TrayWindow {
 
 // MARK: - Actions
 private extension TrayWindow {
-
-    @objc
-    func handleClick() {
-        guard NSApp.currentEvent?.type == .rightMouseUp else {
-            toggleWindow()
-            return
-        }
-
-        if isVisible { toggleWindow() }
-        configureMenu()
-    }
-
     func toggleWindow() {
         guard let buttonFrame = statusItem.button?.window?.frame else { return }
 
@@ -129,7 +153,13 @@ private extension TrayWindow {
     }
 
     @objc
-    func quit() {
-        NSApp.terminate(nil)
+    func handleClick() {
+        guard NSApp.currentEvent?.type == .rightMouseUp else {
+            toggleWindow()
+            return
+        }
+
+        if isVisible { toggleWindow() }
+        configureStatusItem()
     }
 }

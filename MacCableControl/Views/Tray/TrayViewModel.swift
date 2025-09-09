@@ -10,11 +10,22 @@ import SwiftUI
 final class TrayViewModel: ObservableObject {
     @Published var isCharging: Bool = false
 
-    private let alarm = Alarm()
-    private let chargeTracker = ChargeTracker()
+    private let alarm: Alarm
+    private let pusher: Pusher
+    private let chargeTracker: ChargeTracker
+
+    init(
+        alarm: Alarm,
+        pusher: Pusher,
+        chargeTracker: ChargeTracker
+    ) {
+        self.alarm = alarm
+        self.pusher = pusher
+        self.chargeTracker = chargeTracker
+    }
 }
 
-// MARK: - Public
+// MARK: - View output
 extension TrayViewModel {
     func toggle(state: Bool) {
         isCharging = state
@@ -41,7 +52,14 @@ private extension TrayViewModel {
                 self?.onChange($0)
             }
         } catch {
-           isCharging = false
+            isCharging = false
+
+            try? pusher.send(
+                Push(
+                    title: "Tracking failed!",
+                    subtitle: "Something went wrong"
+                )
+            )
         }
     }
 

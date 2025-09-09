@@ -9,8 +9,13 @@ import Cocoa
 
 class AppDelegate: NSObject, NSApplicationDelegate {
 
+    @MainActor
     private let trayWindow: NSWindow? = TrayWindow(
-        TrayView(viewModel: TrayViewModel())
+        alarm: Alarm(),
+        saver: Saver(directory: "MCC-Data"),
+        finder: Finder(),
+        pusher: Pusher([.badge, .banner]),
+        chargeTracker: ChargeTracker()
     )
 
     func applicationDidFinishLaunching(_ notification: Notification) { }
