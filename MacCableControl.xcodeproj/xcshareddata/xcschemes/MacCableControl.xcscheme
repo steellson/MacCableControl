@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1630"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES"
+      buildArchitectures = "Automatic">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "3D151BA62E6F1892002BF461"
+               BuildableName = "MacCableControl.app"
+               BlueprintName = "MacCableControl"
+               ReferencedContainer = "container:MacCableControl.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      shouldAutocreateTestPlan = "YES">
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "3D151BA62E6F1892002BF461"
+            BuildableName = "MacCableControl.app"
+            BlueprintName = "MacCableControl"
+            ReferencedContainer = "container:MacCableControl.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "3D151BA62E6F1892002BF461"
+            BuildableName = "MacCableControl.app"
+            BlueprintName = "MacCableControl"
+            ReferencedContainer = "container:MacCableControl.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "# INSTALLED CREATE-DMG REQUIRED&#10;# To install: brew install create-dmg&#10;&#10;APP_NAME=&quot;MacCableControl&quot;&#10;EXPORT_PATH=&quot;$HOME/Desktop/MacCableControl&quot;&#10;APP_PATH=&quot;${EXPORT_PATH}/${APP_NAME}.app&quot;&#10;DMG_PATH=&quot;${EXPORT_PATH}/${APP_NAME}.dmg&quot;&#10;&#10;mkdir -p &quot;$EXPORT_PATH&quot;&#10;&#10;cp -R &quot;${ARCHIVE_PRODUCTS_PATH}/Applications/${APP_NAME}.app&quot; &quot;$EXPORT_PATH/&quot;&#10;&#10;rm -f &quot;$DMG_PATH&quot;&#10;&#10;/opt/homebrew/bin/create-dmg \&#10;  --volname &quot;${APP_NAME}&quot; \&#10;  --volicon &quot;$APP_PATH/Contents/Resources/AppIcon.icns&quot; \&#10;  --window-pos 200 120 \&#10;  --window-size 600 400 \&#10;  --icon-size 120 \&#10;  --icon &quot;${APP_NAME}.app&quot; 150 200 \&#10;  --app-drop-link 450 200 \&#10;  &quot;$DMG_PATH&quot; \&#10;  &quot;$EXPORT_PATH&quot;&#10;&#10;echo &quot;&#x2705; DMG Created: ${DMG_PATH}&quot;&#10;"
+               shellToInvoke = "/bin/sh">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "3D151BA62E6F1892002BF461"
+                     BuildableName = "MacCableControl.app"
+                     BlueprintName = "MacCableControl"
+                     ReferencedContainer = "container:MacCableControl.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+   </ArchiveAction>
+</Scheme>
