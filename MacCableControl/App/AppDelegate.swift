@@ -15,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         registerAutorun()
+        NSApplication.shared.appearance = NSAppearance(named: .vibrantDark)
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {

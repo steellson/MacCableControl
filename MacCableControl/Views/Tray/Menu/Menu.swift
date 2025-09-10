@@ -93,7 +93,7 @@ private extension Menu {
             let container = NSView(frame: NSRect(
                 x: 0,
                 y: 0,
-                width: 40,
+                width: 60,
                 height: 32
             ))
             let toggle = NSSwitch()
