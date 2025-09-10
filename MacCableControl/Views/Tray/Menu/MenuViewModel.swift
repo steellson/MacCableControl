@@ -5,28 +5,27 @@
 //  Created by Andrew Steellson on 09.09.2025.
 //
 
+import Combine
 import Foundation
 
 final class MenuViewModel: ObservableObject {
+    @Published var isCharging: Bool = false
     @Published var hasCustomSound: Bool = false
 
-    private let alarm: Alarm
-    private let saver: Saver
-    private let pusher: Pusher
-    private let finder: Finder
+    @MainActor
+    private let finder = Finder()
+    private let alarm = Alarm()
+    private let saver = Saver(directory: "MCC-Data")
+    private let pusher = Pusher([.badge, .banner])
+    private let chargeTracker = ChargeTracker(sendRepeats: true)
 
-    init(
-        alarm: Alarm,
-        saver: Saver,
-        pusher: Pusher,
-        finder: Finder
-    ) {
-        self.alarm = alarm
-        self.saver = saver
-        self.pusher = pusher
-        self.finder = finder
+    private var cancellables: Set<AnyCancellable> = []
 
+    init() {
+        subscribe()
         checkSound()
+
+        Task { try? await pusher.requestPermissions() }
     }
 }
 
@@ -63,7 +62,57 @@ extension MenuViewModel {
     }
 }
 
-// MARK: - Private
+// MARK: - Tracking
+private extension MenuViewModel {
+    func subscribe() {
+        /// Signal from UI `ON/OFF`
+        $isCharging
+            .dropFirst()
+            .sink { [weak self] in
+                self?.process($0)
+            }
+            .store(in: &cancellables)
+
+        /// State received from tracker
+        chargeTracker.state
+            .dropFirst()
+            .sink { [weak self] in
+                self?.onChange($0)
+            }
+            .store(in: &cancellables)
+    }
+
+    func process(_ isCharging: Bool) {
+        guard isCharging else {
+            try? chargeTracker.stopTracking()
+            alarm.signal(false)
+            return
+        }
+
+        do {
+            try chargeTracker.startTracking()
+        } catch {
+            try? pusher.send(
+                Push(
+                    title: "Tracking failed!",
+                    subtitle: "Something went wrong"
+                )
+            )
+        }
+    }
+
+    func onChange(_ state: BatteryState) {
+        let isPluggedIn = chargeTracker.isPowerAdapterPluggedIn()
+        let isPowerOFF = state.status == .notCharging
+        let isSignalEnabled = alarm.isPlaying
+
+        if isPluggedIn && isSignalEnabled  { alarm.signal(false) }
+        if !isPluggedIn && isPowerOFF { alarm.signal(true)  }
+    }
+}
+
+
+// MARK: - Sound
 private extension MenuViewModel {
     func checkSound() {
         guard let url = saver.storedURL() else { return }

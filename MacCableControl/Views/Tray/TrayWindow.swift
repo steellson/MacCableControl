@@ -16,36 +16,18 @@ final class TrayWindow: NSWindow {
     private var cancellables = Set<AnyCancellable>()
 
     private let customMenu: Menu
-    private let trayViewModel: TrayViewModel
+    private let menuViewModel: MenuViewModel
     private let statusItem: NSStatusItem
 
     override var canBecomeKey: Bool { true }
 
     // MARK: - Initialization
-    init(
-        alarm: Alarm,
-        saver: Saver,
-        finder: Finder,
-        pusher: Pusher,
-        chargeTracker: ChargeTracker
-    ) {
-        let trayViewModel = TrayViewModel(
-            alarm: alarm,
-            pusher: pusher,
-            chargeTracker: chargeTracker
-        )
-        let menuViewModel = MenuViewModel(
-            alarm: alarm,
-            saver: saver,
-            pusher: pusher,
-            finder: finder
-        )
+    init() {
+        let menuViewModel = MenuViewModel()
+        let customMenu = Menu(viewModel: menuViewModel)
 
-        let tray = TrayView(viewModel: trayViewModel)
-        let menu = Menu(viewModel: menuViewModel)
-
-        self.customMenu = menu
-        self.trayViewModel = trayViewModel
+        self.customMenu = customMenu
+        self.menuViewModel = menuViewModel
         self.statusItem = NSStatusBar.system.statusItem(
             withLength: NSStatusItem.variableLength
         )
@@ -57,9 +39,8 @@ final class TrayWindow: NSWindow {
             defer: false
         )
 
-        Task { try? await pusher.requestPermissions() }
 
-        configureBasic(with: tray)
+        configureBasic()
         configureButton()
         configureSubscription()
     }
@@ -72,11 +53,7 @@ final class TrayWindow: NSWindow {
 
 // MARK: - Configuration
 private extension TrayWindow {
-    func configureBasic(with trayView: TrayView) {
-        contentView = NSHostingView(rootView: trayView)
-        contentView?.layer?.backgroundColor = .clear
-        contentView?.clipsToBounds = true
-
+    func configureBasic() {
         level = .floating
         isReleasedWhenClosed = false
         standardWindowButton(.zoomButton)?.isHidden = true
@@ -93,7 +70,7 @@ private extension TrayWindow {
     }
 
     func configureSubscription() {
-        trayViewModel.$isCharging
+        menuViewModel.$isCharging
             .removeDuplicates()
             .sink { [weak self] isTracking in
                 let imageName = isTracking
@@ -140,6 +117,7 @@ private extension TrayWindow {
 private extension TrayWindow {
     func toggleWindow() {
         guard let buttonFrame = statusItem.button?.window?.frame else { return }
+        configureStatusItem()
 
         if isVisible {
             orderOut(nil)
@@ -154,12 +132,6 @@ private extension TrayWindow {
 
     @objc
     func handleClick() {
-        guard NSApp.currentEvent?.type == .rightMouseUp else {
-            toggleWindow()
-            return
-        }
-
-        if isVisible { toggleWindow() }
-        configureStatusItem()
+        toggleWindow()
     }
 }

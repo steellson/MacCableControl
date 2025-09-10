@@ -11,13 +11,7 @@ import ServiceManagement
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
-    private let trayWindow: NSWindow? = TrayWindow(
-        alarm: Alarm(),
-        saver: Saver(directory: "MCC-Data"),
-        finder: Finder(),
-        pusher: Pusher([.badge, .banner]),
-        chargeTracker: ChargeTracker()
-    )
+    private let trayWindow: NSWindow? = TrayWindow()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         registerAutorun()
