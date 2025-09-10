@@ -8,16 +8,9 @@
 import AppKit
 
 final class Alarm {
-    public var isOn: Bool { process != nil }
-
+    public var isPlaying: Bool { process != nil }
     public var soundURL: URL? {
-        didSet {
-            guard let soundURL else { return }
-            sound = NSSound(
-                contentsOf: soundURL,
-                byReference: false
-            )
-        }
+        didSet { onAddURL() }
     }
 
     private var sound: NSSound?
@@ -27,15 +20,18 @@ final class Alarm {
         self.soundURL = soundURL
     }
 
-    deinit {
-        stop()
-    }
+    deinit { stop() }
 }
 
 // MARK: - Public
 extension Alarm {
     public func signal(_ isOn: Bool) {
-        isOn ? start() : stop()
+        guard isOn else {
+            stop()
+            return
+        }
+        if isPlaying { stop() }
+        start()
     }
 }
 
@@ -64,5 +60,21 @@ private extension Alarm {
             return
         }
         sound.play()
+    }
+
+    func onAddURL() {
+        let isOn = isPlaying
+        if isOn { stop() }
+
+        sound = if let soundURL {
+            NSSound(
+                contentsOf: soundURL,
+                byReference: false
+            )
+        } else {
+            nil
+        }
+
+        if isOn { start() }
     }
 }

@@ -71,7 +71,7 @@ private extension TrayViewModel {
     func onChange(_ state: BatteryState) {
         let isPluggedIn = chargeTracker.isPowerAdapterPluggedIn()
         let isPowerOFF = state.status == .notCharging
-        let isSignalEnabled = alarm.isOn
+        let isSignalEnabled = alarm.isPlaying
 
         if isPluggedIn && isSignalEnabled  { alarm.signal(false) }
         if !isPluggedIn && isPowerOFF { alarm.signal(true)  }
