@@ -8,6 +8,8 @@
 import AppKit
 
 final class Alarm {
+    public var isOn: Bool { process != nil }
+
     public var soundURL: URL? {
         didSet {
             guard let soundURL else { return }

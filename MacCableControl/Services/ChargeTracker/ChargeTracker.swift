@@ -1,12 +1,15 @@
 //  Created by Andrew Steellson on 08.09.2025.
 //
 
+import Combine
 import IOKit.ps
 import Foundation
 
 /// ⚡️Tool for tracking battarey charging status changes⚡️
 public final class ChargeTracker {
-    public var onStatusChange: ((BatteryState) -> Void)?
+    public var state = CurrentValueSubject<BatteryState, Never>(
+        BatteryState(status: .unknown)
+    )
 
     private var status: Status = .unknown
     private var runLoopSource: CFRunLoopSource?
@@ -122,14 +125,18 @@ private extension ChargeTracker {
     /// Send exclusive events without duplicates
     /// - Parameter newStatus: Current received status `ON/OFF`
     func updateStatus(_ newStatus: Status) {
+        let updateStatus = { [weak self] in
+            self?.status = newStatus
+            self?.state.send(BatteryState(status: newStatus))
+        }
+
         guard newStatus != status else {
-            if sendRepeats { onStatusChange?(BatteryState(status: newStatus)) }
+            if sendRepeats { updateStatus() }
             Log.debug("Charging status didnt change: \(newStatus)")
             return
         }
 
-        status = newStatus
-        onStatusChange?(BatteryState(status: newStatus))
+        updateStatus()
         Log.debug("Charging status updated: \(newStatus)")
     }
 }

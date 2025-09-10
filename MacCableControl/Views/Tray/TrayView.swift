@@ -16,13 +16,7 @@ struct TrayView: View {
 
     var body: some View {
         Toggle(isOn: $viewModel.isCharging) {}
-            .onChange(of: viewModel.isCharging) {
-                viewModel.toggle(state: $0)
-            }
-            .toggleStyle(ColoredSwitchToggleStyle(
-                onColor: .green,
-                offColor: .gray
-            ))
+            .toggleStyle(ColoredSwitchToggleStyle(onColor: .green, offColor: .gray))
             .padding(4)
     }
 }

@@ -35,8 +35,7 @@ public extension Finder {
             throw Errors.selectionCancelled
         }
 
-        openPanel.level = .popUpMenu
-        openPanel.makeKeyAndOrderFront(nil)
+        openPanel.makeKey()
         openPanel.becomeFirstResponder()
 
         guard let url = openPanel.urls.first else {

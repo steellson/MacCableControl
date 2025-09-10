@@ -5,7 +5,7 @@
 //  Created by Andrew Steellson on 08.09.2025.
 //
 
-import SwiftUI
+import Combine
 
 final class TrayViewModel: ObservableObject {
     @Published var isCharging: Bool = false
@@ -13,6 +13,8 @@ final class TrayViewModel: ObservableObject {
     private let alarm: Alarm
     private let pusher: Pusher
     private let chargeTracker: ChargeTracker
+
+    private var cancelables: Set<AnyCancellable> = []
 
     init(
         alarm: Alarm,
@@ -22,38 +24,41 @@ final class TrayViewModel: ObservableObject {
         self.alarm = alarm
         self.pusher = pusher
         self.chargeTracker = chargeTracker
-    }
-}
 
-// MARK: - View output
-extension TrayViewModel {
-    func toggle(state: Bool) {
-        isCharging = state
-        process()
-
-        NSHapticFeedbackManager.defaultPerformer.perform(
-            .levelChange,
-            performanceTime: .default
-        )
+        subscribe()
     }
 }
 
 // MARK: - Tracking
 private extension TrayViewModel {
-    func process() {
+    func subscribe() {
+        /// Signal from UI `ON/OFF`
+        $isCharging
+            .dropFirst()
+            .sink { [weak self] in
+                self?.process($0)
+            }
+            .store(in: &cancelables)
+
+        /// State received from tracker
+        chargeTracker.state
+            .dropFirst()
+            .sink { [weak self] in
+                self?.onChange($0)
+            }
+            .store(in: &cancelables)
+    }
+
+    func process(_ isCharging: Bool) {
         guard isCharging else {
             try? chargeTracker.stopTracking()
+            alarm.signal(false)
             return
         }
 
         do {
             try chargeTracker.startTracking()
-            chargeTracker.onStatusChange = { [weak self] in
-                self?.onChange($0)
-            }
         } catch {
-            isCharging = false
-
             try? pusher.send(
                 Push(
                     title: "Tracking failed!",
@@ -64,10 +69,11 @@ private extension TrayViewModel {
     }
 
     func onChange(_ state: BatteryState) {
-        let isntCharging = state.status == .notCharging
-        let isntPluggedIn = !chargeTracker.isPowerAdapterPluggedIn()
-        let shouldBeep = isntCharging && isntPluggedIn
+        let isPluggedIn = chargeTracker.isPowerAdapterPluggedIn()
+        let isPowerOFF = state.status == .notCharging
+        let isSignalEnabled = alarm.isOn
 
-        alarm.signal(shouldBeep)
+        if isPluggedIn && isSignalEnabled  { alarm.signal(false) }
+        if !isPluggedIn && isPowerOFF { alarm.signal(true)  }
     }
 }

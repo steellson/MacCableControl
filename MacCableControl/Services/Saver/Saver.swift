@@ -58,7 +58,7 @@ extension Saver {
     func storedURL() -> URL? {
         try? fileManager
             .contentsOfDirectory(atPath: directory.path())
-            .compactMap { URL(string: $0) }
+            .compactMap { directory.appending(path: $0) }
             .last
     }
 }
@@ -89,6 +89,6 @@ private extension Saver {
         let files = try? fileManager.contentsOfDirectory(atPath: dir)
         guard let files, !files.isEmpty else { return }
 
-        files.forEach { try? fileManager.removeItem(atPath: dir.appending($0)) }
+        files.forEach { try? fileManager.removeItem(atPath: dir.appending("/" + $0)) }
     }
 }
