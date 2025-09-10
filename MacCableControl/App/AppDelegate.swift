@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import ServiceManagement
 
 class AppDelegate: NSObject, NSApplicationDelegate {
 
@@ -18,10 +19,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         chargeTracker: ChargeTracker()
     )
 
-    func applicationDidFinishLaunching(_ notification: Notification) { }
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        registerAutorun()
+    }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
 }
 
+// MARK: - Autorun
+private extension AppDelegate {
+    func registerAutorun() {
+        do {
+            let appService = SMAppService.mainApp
+            try appService.register()
+
+            let status = appService.status
+            status == .enabled
+            ? Log.success("Autorun enabled")
+            : Log.warning("Autorun status is: \(status)")
+        } catch {
+            Log.critical("Failed to register autorun: \(error)")
+        }
+    }
+}
